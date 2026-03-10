@@ -1,57 +1,156 @@
-# Semantic Segmentation Model for Off-Road Autonomous Vehicles
+# Offroad Autonomy Semantic Segmentation
 
-This repository contains the training and testing pipeline for the Duality AI Offroad Autonomy Segmentation Challenge. 
-We have implemented a semantic segmentation model using PyTorch and `segmentation_models_pytorch` to segment desert environment features from synthetic data provided by Duality AI.
+Hackathon submission for the Duality AI Offroad Autonomy Segmentation Challenge.
 
-## Project Structure
-- `train.py`: Script to train the semantic segmentation model.
-- `test.py`: Script to test the model on unseen images and save visualization masks.
-- `app.py`: A lightweight Flask server to host a beautiful Web UI for interactive model testing.
-- `requirements.txt`: Python pip dependencies.
-- `Report.pdf/docx`: (See enclosed) Our Hackathon technical report covering methodology and optimizations.
-- `best_model.pth`: The trained model weights (generated after running `train.py`).
+This project builds a semantic segmentation pipeline for off-road autonomous driving scenes using synthetic data from Duality AI. The model predicts a class label for every pixel in an image, helping identify terrain and environmental elements such as trees, bushes, rocks, landscape, sky, logs, and flowers.
 
-## Requirements
-Ensure you have a Python environment set up (Anaconda or Miniconda is recommended per the instructions).
+## Overview
+
+- Challenge: segment off-road scenes for autonomy perception
+- Team: Team Chaos
+- Framework: PyTorch
+- Model: DeepLabV3+ with MiT-B2 backbone
+- Classes: 11 semantic classes
+- Training environment: Kaggle Notebook GPU
+- Deliverables: training code, inference script, exported weights, and a Flask demo UI
+
+## Problem Statement
+
+Off-road autonomy requires a detailed understanding of terrain and obstacles at the pixel level. Unlike standard road-scene segmentation, this setting includes unstructured environments with vegetation, rocks, clutter, and uneven ground. Our goal was to train a robust model that generalizes well to unseen off-road scenes while remaining efficient enough for practical inference.
+
+## Approach
+
+We used `segmentation_models_pytorch` to build a DeepLabV3+ network with a MiT-B2 encoder. This combination gave us strong multi-scale context capture with a relatively lightweight backbone.
+
+To improve generalization, we applied aggressive augmentations with `albumentations`, including flips, rotations, grid distortion, elastic transforms, color jitter, grayscale conversion, and blur. To address class imbalance, we combined weighted cross-entropy with Dice loss so that rare classes such as logs, flowers, and dry grass were not ignored during training.
+
+## Training Environment
+
+Model training was performed in a **Kaggle Notebook** using GPU acceleration. This repository contains the training code used for the experiment, along with the local scripts for inference and the Flask-based demo UI. The trained checkpoint, `best_model.pth`, was exported from the Kaggle training run for local testing and visualization.
+
+## Results
+
+- Best validation mIoU: `0.5257`
+- Inference speed: typically under `50 ms` per image in the target setup
+- Output: colorized segmentation masks for visual inspection and a browser-based interactive demo
+
+## Semantic Classes
+
+The model predicts the following classes:
+
+`Background`, `Trees`, `Lush Bushes`, `Dry Grass`, `Dry Bushes`, `Ground Clutter`, `Flowers`, `Logs`, `Rocks`, `Landscape`, `Sky`
+
+## Repository Structure
+
+- `train.py` - training pipeline used for the Kaggle experiment
+- `test.py` - batch inference on unseen images
+- `app.py` - Flask app for interactive testing
+- `requirements.txt` - Python dependencies
+- `Hackathon_Report.md` - short technical write-up
+- `details.pdf` - supporting report / submission material
+- `best_model.pth` - exported trained model weights if included locally
+
+## Setup
+
+Create a Python environment and install the dependencies:
+
 ```bash
-# Install required packages
 pip install -r requirements.txt
 ```
 
-## How to Train
-1. Ensure the dataset is structured correctly:
-    - `./data/train/Color_Images`
-    - `./data/train/Segmentation`
-    - `./data/val/Color_Images`
-    - `./data/val/Segmentation`
-2. Run the training script:
-    ```bash
-    python train.py
-    ```
-    This script will train a DeepLabV3+ model with a MiT-B2 backbone, using data augmentations (Albumentations) and a combined Dice + CrossEntropy loss function.
-3. The best model weights will be saved as `best_model.pth`.
+## Dataset Layout
 
-## How to Test
-1. Ensure the unseen test images are placed in `./data/testImages`.
-2. Ensure `best_model.pth` exists in the root directory.
-3. Run the testing script:
-    ```bash
-    python test.py
-    ```
-4. This script will run inference on the test images and save colorized masks to `./runs/test_outputs` for manual review.
+Expected dataset structure:
 
-## Interactive UI Testing
-We have also included a beautiful web interface to interactively test the model!
-1. Start the Flask server:
-    ```bash
-    python app.py
-    ```
-2. Open your browser to `http://127.0.0.1:5000`
-3. Upload an image to see the model segment the environment in real-time, with interactive split-view and overlay features. The legend dynamically displays the 11 classes.
+```text
+data/
+  train/
+    Color_Images/
+    Segmentation/
+  val/
+    Color_Images/
+    Segmentation/
+  testImages/
+    Color_Images/
+    Segmentation/
+```
 
-## Features & Optimizations
-- **Architecture**: DeepLabV3+ with a lightweight MiT-B2 (SegFormer) encoder for fast inference and dense receptive fields.
-- **Data Augmentation**: Used `albumentations` for Spatial (Flip, Rotate, GridDistortion) and Pixel (ColorJitter, Blur) augmentations to prevent overfitting on synthetic textures.
-- **Class Imbalance**: Implemented a Combined Loss function (CrossEntropy with custom class weights + Dice Loss) to heavily penalize missing thin classes like "Logs", "Flowers", and "Dry Grass".
-- **Mixed Precision**: Uses `torch.amp.GradScaler` (FP16) during training to cut memory usage by half and speed up training, allowing a larger batch size on commodity GPUs (like the Kaggle T4). 
-- **LR Scheduling**: CosineAnnealingWarmRestarts with differential learning rates (lower LR for the pretrained encoder, higher for the decoder).
+## Training
+
+The training workflow for the hackathon was executed in Kaggle Notebook.
+
+If you want to reproduce the experiment, run:
+
+```bash
+python train.py
+```
+
+What the training script does:
+
+- loads training and validation data
+- applies augmentation and normalization
+- trains DeepLabV3+ with weighted CE + Dice loss
+- evaluates per-class IoU and mean IoU
+- saves the best checkpoint as `best_model.pth`
+
+## Testing
+
+Run:
+
+```bash
+python test.py
+```
+
+This will:
+
+- load `best_model.pth`
+- run inference on images in `data/testImages/Color_Images`
+- save predicted color masks to `runs/test_outputs/`
+
+## Demo UI
+
+To launch the interactive web demo:
+
+```bash
+python app.py
+```
+
+Then open:
+
+```text
+http://127.0.0.1:5000
+```
+
+The UI supports:
+
+- image upload
+- split-view comparison
+- overlay mask visualization
+- class legend display
+- quick qualitative testing of predictions
+
+## Key Design Choices
+
+- DeepLabV3+ for strong dense prediction performance
+- MiT-B2 encoder for a good accuracy-speed balance
+- heavy augmentation to reduce overfitting to synthetic textures
+- weighted loss to handle rare and thin classes
+- cosine annealing warm restarts and AdamW optimization
+- mixed precision training for faster GPU training in Kaggle
+
+## Limitations
+
+- performance can still drop on rare classes and hard shadows
+- current training script is primarily tuned for GPU usage
+- the included demo is intended for qualitative testing, not production deployment
+
+## Future Improvements
+
+- stronger domain adaptation from synthetic to real-world off-road scenes
+- model ensembling for higher final IoU
+- self-supervised pretraining for better feature extraction
+- test-time augmentation and post-processing for cleaner masks
+
+## Notes For GitHub
+
+If you are publishing this repository, it is usually better not to upload large generated outputs such as `runs/` or raw datasets. Keep the code, documentation, and a few sample predictions instead.
