@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offroad Autonomy Semantic Segmentation</title>
+    <!-- Professional font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icon library -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="top-nav">
+            <div class="logo">
+                <div class="logo-icon"><i class="ri-rhythm-fill"></i></div>
+                <div class="logo-text">
+                    <h1>Duality AI</h1>
+                    <span>Semantic Segmentation</span>
+                </div>
+            </div>
+            <div class="model-status">
+                <span class="status-indicator"></span>
+                <span id="model-status-text">Model Ready</span>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="content-grid">
+            
+            <!-- Left Side: Uploader + Image Display -->
+            <section class="visualizer-panel">
+                <div class="upload-zone" id="drop-zone">
+                    <input type="file" id="file-input" accept="image/*" hidden>
+                    <div class="upload-content">
+                        <div class="upload-icon-wrapper">
+                            <i class="ri-image-add-line"></i>
+                        </div>
+                        <h2>Upload Environmental Data</h2>
+                        <p>Drag & drop or <span class="browse-link">browse</span> to test the model</p>
+                        <p class="file-hint">Supports JPG, PNG (Max 10MB)</p>
+                    </div>
+                </div>
+
+                <div class="results-viewer hidden" id="results-viewer">
+                    <div class="viewer-header">
+                        <div class="view-controls">
+                            <button class="view-btn active" data-view="split"><i class="ri-split-cells-horizontal"></i> Split View</button>
+                            <button class="view-btn" data-view="overlay"><i class="ri-stack-line"></i> Overlay</button>
+                            <button class="view-btn" data-view="mask"><i class="ri-shape-fill"></i> Mask Only</button>
+                        </div>
+                        <button class="action-btn" id="new-upload-btn">
+                            <i class="ri-refresh-line"></i> New Image
+                        </button>
+                    </div>
+                    
+                    <div class="image-container-wrapper">
+                        <div class="image-container" id="image-container">
+                            <!-- Original Image -->
+                            <img id="original-image" class="display-image" src="" alt="Original Image">
+                            
+                            <!-- Overlay Mask -->
+                            <img id="mask-image" class="display-image overlay-mask" src="" alt="Segmentation Mask">
+                            
+                            <!-- Slider for split view -->
+                            <div class="slider-handle" id="slider">
+                                <div class="slider-button"><i class="ri-expand-left-right-line"></i></div>
+                            </div>
+
+                            <!-- Loading Overlay -->
+                            <div class="computing-overlay hidden" id="loading-overlay">
+                                <div class="spinner"></div>
+                                <p>Running Inference...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Analytics & Legend -->
+            <aside class="sidebar-panel">
+                <div class="panel-card analytics-card">
+                    <div class="card-header">
+                        <h3><i class="ri-dashboard-3-line"></i> Execution Details</h3>
+                    </div>
+                    <div class="stat-grid">
+                        <div class="stat-box">
+                            <span class="stat-label">Resolution</span>
+                            <span class="stat-value" id="stat-res">-- x --</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Latency</span>
+                            <span class="stat-value highlight" id="stat-time">-- ms</span>
+                        </div>
+                    </div>
+                    <button class="primary-btn" id="run-btn" disabled>
+                        <i class="ri-play-fill"></i> Run Segmentation
+                    </button>
+                </div>
+
+                <div class="panel-card legend-card">
+                    <div class="card-header">
+                        <h3><i class="ri-list-check-2"></i> Semantic Classes</h3>
+                    </div>
+                    <div class="legend-grid" id="legend-grid">
+                        <!-- Legend items injected via JS -->
+                    </div>
+                </div>
+            </aside>
+            
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
