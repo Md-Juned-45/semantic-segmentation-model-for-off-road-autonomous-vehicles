@@ -1,5 +1,7 @@
 # Offroad Autonomy Semantic Segmentation
 
+![Demo UI](assets/demo-ui.png)
+
 Hackathon submission for the Duality AI Offroad Autonomy Segmentation Challenge.
 
 This project builds a semantic segmentation pipeline for off-road autonomous driving scenes using synthetic data from Duality AI. The model predicts a class label for every pixel in an image, helping identify terrain and environmental elements such as trees, bushes, rocks, landscape, sky, logs, and flowers.
